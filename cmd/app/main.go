@@ -23,8 +23,8 @@ func main() {
 	http.HandleFunc("/", welcomeHandler)
 	http.HandleFunc("/list", listHandler)
 
-	fmt.Println("Starting server on :8080")
-	err := http.ListenAndServe(":8080", nil)
+	fmt.Println("Starting server on :3000")
+	err := http.ListenAndServe(":3000", nil)
 	if err != nil {
 		panic(err)
 	}
