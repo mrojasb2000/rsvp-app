@@ -79,6 +79,22 @@ func formHandler(writer http.ResponseWriter, request *http.Request) {
 			RSVP:   &entity.RSVP{},
 			Errors: []string{},
 		})
+	} else if request.Method == http.MethodPost {
+		request.ParseForm()
+		responseData := &entity.RSVP{
+			Name:       request.Form.Get("name"),
+			Email:      request.Form.Get("email"),
+			Phone:      request.Form.Get("phone"),
+			WillAttend: request.Form.Get("willattend") == "true",
+		}
+
+		responses = append(responses, responseData)
+
+		if responseData.WillAttend {
+			templates["thanks"].Execute(writer, responseData)
+		} else {
+			templates["sorry"].Execute(writer, responseData)
+		}
 	}
 }
 
