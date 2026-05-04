@@ -3,9 +3,13 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/joho/godotenv"
 
 	"partyinvites.org/internal/domain/entity"
 )
@@ -20,11 +24,23 @@ var templates = make(map[string]*template.Template, 3)
 func main() {
 	loadTemplates()
 
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	// Get the port from the environment variable, default to 8080 if not set.
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	http.HandleFunc("/", welcomeHandler)
 	http.HandleFunc("/list", listHandler)
+	http.HandleFunc("/form", formHandler)
 
-	fmt.Println("Starting server on :3000")
-	err := http.ListenAndServe(":3000", nil)
+	fmt.Println("Starting server on :", port)
+	err = http.ListenAndServe(":"+port, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -56,11 +72,21 @@ func listHandler(writer http.ResponseWriter, request *http.Request) {
 	templates["list"].Execute(writer, responses)
 }
 
+// formHandler serves the RSVP form when the "/form" URL is accessed with a GET request.
+func formHandler(writer http.ResponseWriter, request *http.Request) {
+	if request.Method == http.MethodGet {
+		templates["form"].Execute(writer, entity.FormData{
+			RSVP:   &entity.RSVP{},
+			Errors: []string{},
+		})
+	}
+}
+
 // rootPath returns the root path of the project by using runtime.
 // Caller to get the current file's location and navigating up the directory structure.
 func rootPath(path string) string {
 	_, b, _, _ := runtime.Caller(0)
 	projectRoot := filepath.Join(filepath.Dir(b), "../..")
-	fmt.Println("Raíz del proyecto:", projectRoot)
+	fmt.Println("Project root:", projectRoot)
 	return filepath.Join(projectRoot, path)
 }
