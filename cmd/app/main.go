@@ -88,6 +88,24 @@ func formHandler(writer http.ResponseWriter, request *http.Request) {
 			WillAttend: request.Form.Get("willattend") == "true",
 		}
 
+		errors := []string{}
+		if responseData.Name == "" {
+			errors = append(errors, "Please enter your name")
+		}
+		if responseData.Email == "" {
+			errors = append(errors, "Please enter your email address")
+		}
+		if responseData.Phone == "" {
+			errors = append(errors, "Please enter your phone number")
+		}
+		if len(errors) > 0 {
+			templates["form"].Execute(writer, entity.FormData{
+				RSVP:   responseData,
+				Errors: errors,
+			})
+			return
+		}
+
 		responses = append(responses, responseData)
 
 		if responseData.WillAttend {
